@@ -29,7 +29,7 @@ func New(element interface{}) Updater {
 		}
 
 		for name, propname := range schema {
-			fieldUpdater(values, dest, &newEl)(name, propname)
+			fieldUpdater(name, propname, values, dest, &newEl)
 		}
 
 		return newEl.Interface()
@@ -37,27 +37,25 @@ func New(element interface{}) Updater {
 }
 
 // fieldUpdater is a factory function for field
-func fieldUpdater(values map[string]interface{}, dest interface{}, newEl *reflect.Value) func(name string, propname string) {
-	return func(name string, propname string) {
-		newField := newEl.FieldByName(propname)
-		if !(newField.IsValid() && newField.CanSet()) {
+func fieldUpdater(name, propname string, values map[string]interface{}, dest interface{}, newEl *reflect.Value) {
+	newField := newEl.FieldByName(propname)
+	if !(newField.IsValid() && newField.CanSet()) {
+		return
+	}
+
+	if raw, ok := values[name]; ok && raw != nil {
+		valM := reflect.ValueOf(raw)
+		if !valM.IsValid() {
 			return
 		}
-
-		if raw, ok := values[name]; ok && raw != nil {
-			valM := reflect.ValueOf(raw)
-			if !valM.IsValid() {
-				return
+		if t := newField.Type(); valM.Type().ConvertibleTo(t) {
+			if v := valM.Convert(t); v.IsValid() {
+				newField.Set(v)
 			}
-			if t := newField.Type(); valM.Type().ConvertibleTo(t) {
-				if v := valM.Convert(t); v.IsValid() {
-					newField.Set(v)
-				}
-			}
-		} else if valDest := reflect.ValueOf(dest); valDest.Kind() == reflect.Struct {
-			if fieldDest := valDest.FieldByName(propname); fieldDest.IsValid() {
-				newField.Set(fieldDest)
-			}
+		}
+	} else if valDest := reflect.ValueOf(dest); valDest.Kind() == reflect.Struct {
+		if fieldDest := valDest.FieldByName(propname); fieldDest.IsValid() {
+			newField.Set(fieldDest)
 		}
 	}
 }
