@@ -1,1 +1,1 @@
-# updater [![GoDoc](https://godoc.org/graphql.co/graphql?status.svg)](https://github.com/lsldigital/updater/)
+# updater [![GoDoc](https://godoc.org/graphql.co/graphql?status.svg)](https://pkg.go.dev/github.com/lsldigital/updater)
