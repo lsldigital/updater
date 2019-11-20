@@ -4,23 +4,134 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
+	"go.lsl.digital/updater"
 )
+
+type Person struct {
+	Name   string
+	Age    int
+	Emails []string
+	Extra  map[string]string
+}
+
+type testCase struct {
+	name          string
+	element       interface{}
+	values        map[string]interface{}
+	dest          interface{}
+	result        interface{}
+	expectedError bool
+}
 
 // UpdaterTestSuite is the main test suite for package updater
 type UpdaterTestSuite struct {
 	suite.Suite
+	testcases []testCase
 }
 
 // SetupTest setups the test suite for future tests
-func (suite *UpdaterTestSuite) SetupTest() {
-	// TODO: implement
-	suite.Fail("not implemented yet")
+func (s *UpdaterTestSuite) SetupSuite() {
+	s.testcases = []testCase{
+		testCase{
+			name:    "person: all normal values",
+			element: Person{},
+			values: map[string]interface{}{
+				"Name":   "Bob",
+				"Age":    25,
+				"Emails": []string{"bob@thebuilder.us", "bobby@notan.org"},
+				"Extra": map[string]string{
+					"Gender": "Robot",
+				},
+			},
+			dest: Person{},
+			result: Person{
+				Name:   "Bob",
+				Age:    25,
+				Emails: []string{"bob@thebuilder.us", "bobby@notan.org"},
+				Extra: map[string]string{
+					"Gender": "Robot",
+				},
+			},
+			expectedError: false,
+		},
+		testCase{
+			name:    "person: all normal + unknown values",
+			element: Person{},
+			values: map[string]interface{}{
+				"Name":   "Bob",
+				"Age":    25,
+				"Emails": []string{"bob@thebuilder.us", "bobby@notan.org"},
+				"Extra": map[string]string{
+					"Gender": "Class",
+				},
+				"Invalid": true,
+			},
+			dest: Person{},
+			result: Person{
+				Name:   "Bob",
+				Age:    25,
+				Emails: []string{"bob@thebuilder.us", "bobby@notan.org"},
+				Extra: map[string]string{
+					"Gender": "Class",
+				},
+			},
+			expectedError: false,
+		},
+		testCase{
+			name:    "person: missing values",
+			element: Person{},
+			values: map[string]interface{}{
+				"Name": "Bob",
+				"Age":  25,
+				"Extra": map[string]string{
+					"Gender": "Object",
+				},
+			},
+			dest: Person{Emails: []string{"bobby@oldemail.us"}},
+			result: Person{
+				Name:   "Bob",
+				Age:    25,
+				Emails: []string{"bobby@oldemail.us"},
+				Extra: map[string]string{
+					"Gender": "Object",
+				},
+			},
+			expectedError: false,
+		},
+		testCase{
+			name:    "person: override values",
+			element: Person{},
+			values: map[string]interface{}{
+				"Name":   "Bob",
+				"Age":    25,
+				"Emails": []string{"no-reply@lebobby.fr"},
+				"Extra": map[string]string{
+					"Gender": "Object",
+				},
+			},
+			dest: Person{Emails: []string{"bobby@oldemail.us"}},
+			result: Person{
+				Name:   "Bob",
+				Age:    25,
+				Emails: []string{"no-reply@lebobby.fr"},
+				Extra: map[string]string{
+					"Gender": "Object",
+				},
+			},
+			expectedError: false,
+		},
+	}
 }
 
 // TestUpdater is the main test function
-func (suite *UpdaterTestSuite) TestUpdater() {
-	// TODO: implement
-	suite.FailNow("not implemented yet")
+func (s *UpdaterTestSuite) TestUpdater() {
+	for _, tc := range s.testcases {
+		s.Run(tc.name, func() {
+			updaterFn := updater.New(tc.element)
+			result := updaterFn(tc.values, tc.dest)
+			s.Equal(tc.result, result)
+		})
+	}
 }
 
 // TestUpdaterTestSuite is the main entrypoint for UpdaterTestSuite

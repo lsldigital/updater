@@ -1,6 +1,8 @@
 package updater // import "go.lsl.digital/updater"
 
-import "reflect"
+import (
+	"reflect"
+)
 
 // Updater accepts an instance of an object (typically loaded from database)
 // and graphql resolve params.
@@ -12,9 +14,20 @@ type Updater func(values map[string]interface{}, dest interface{}) interface{}
 // and graphql resolve params.
 // It returns an updated version of the object.
 func New(element interface{}) Updater {
-	schema := make(map[string]string)
+	schema := make(map[string]reflect.StructField)
 
 	//TODO use element to create schema
+	valElem := reflect.ValueOf(element)
+
+	if valElem.Kind() != reflect.Struct {
+		return nil
+	}
+
+	for i := 0; i < valElem.NumField(); i++ {
+		typeField := valElem.Type().Field(i)
+		name := typeField.Name
+		schema[name] = typeField
+	}
 
 	return func(values map[string]interface{}, dest interface{}) interface{} {
 		typeDest := reflect.TypeOf(dest)
@@ -28,8 +41,8 @@ func New(element interface{}) Updater {
 			return nil
 		}
 
-		for name, propname := range schema {
-			fieldUpdater(name, propname, values, dest, &newEl)
+		for name, _ := range schema {
+			fieldUpdater(name, name, values, dest, &newEl)
 		}
 
 		return newEl.Interface()
