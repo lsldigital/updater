@@ -12,18 +12,9 @@ type Updater func(existing interface{}, values map[string]interface{}) (interfac
 
 // New is a factory function that given an instance of an object will generate an "Updater" function.
 func New(instance interface{}) (Updater, error) {
-	schema := make(map[string]struct{})
-
-	valElem := reflect.ValueOf(instance)
-
-	if valElem.Kind() != reflect.Struct {
-		return nil, errors.New("instance must be of type struct")
-	}
-
-	for i := 0; i < valElem.NumField(); i++ {
-		typeField := valElem.Type().Field(i)
-		name := typeField.Name
-		schema[name] = struct{}{}
+	schema, err := createSchemaFromInstance(instance)
+	if err != nil {
+		return nil, err
 	}
 
 	return func(existing interface{}, values map[string]interface{}) (interface{}, error) {
@@ -38,9 +29,9 @@ func New(instance interface{}) (Updater, error) {
 			return nil, errors.New("new element from existing object cannot be casted to interface")
 		}
 
-		for name := range schema {
-			field := newElem.FieldByName(name)
-			updateField(name, values, existing, &field)
+		for name, propname := range schema {
+			field := newElem.FieldByName(propname)
+			updateField(name, propname, values, existing, &field)
 		}
 
 		return newElem.Interface(), nil
@@ -49,7 +40,7 @@ func New(instance interface{}) (Updater, error) {
 
 // updateField updates a field using either new or existing values
 // if no new values found for field, use existing values from existing instance of object
-func updateField(name string, values map[string]interface{}, existing interface{}, field *reflect.Value) {
+func updateField(name, propname string, values map[string]interface{}, existing interface{}, field *reflect.Value) {
 	if !(field.IsValid() && field.CanSet()) {
 		return
 	}
@@ -65,8 +56,32 @@ func updateField(name string, values map[string]interface{}, existing interface{
 			}
 		}
 	} else if valOfExisting := reflect.ValueOf(existing); valOfExisting.Kind() == reflect.Struct {
-		if fieldDest := valOfExisting.FieldByName(name); fieldDest.IsValid() {
+		if fieldDest := valOfExisting.FieldByName(propname); fieldDest.IsValid() {
 			field.Set(fieldDest)
 		}
 	}
+}
+
+// createSchemaFromInstance accepts an instance of an object
+// and returns map[fieldname]propname
+func createSchemaFromInstance(instance interface{}) (map[string]string, error) {
+	schema := make(map[string]string)
+
+	valElem := reflect.ValueOf(instance)
+
+	if valElem.Kind() != reflect.Struct {
+		return nil, errors.New("instance must be of type struct")
+	}
+
+	for i := 0; i < valElem.NumField(); i++ {
+		typeField := valElem.Type().Field(i)
+		propname := typeField.Name
+		fieldname := typeField.Tag.Get("json")
+		if fieldname == "" || fieldname == "-" {
+			fieldname = toSnakeCase(propname)
+		}
+		schema[fieldname] = propname
+	}
+
+	return schema, nil
 }

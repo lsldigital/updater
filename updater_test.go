@@ -8,10 +8,11 @@ import (
 )
 
 type Person struct {
-	Name   string
-	Age    int
-	Emails []string
-	Extra  map[string]string
+	Name        string
+	Age         int
+	Emails      []string
+	DateOfBirth string `json:"dob"`
+	Extra       map[string]string
 }
 
 type testCase struct {
@@ -36,20 +37,22 @@ func (s *UpdaterTestSuite) SetupSuite() {
 			name:    "person: all normal values",
 			element: Person{},
 			values: map[string]interface{}{
-				"Name":   "Bob",
-				"Age":    25,
-				"Emails": []string{"bob@thebuilder.us", "bobby@notan.org"},
-				"Extra": map[string]string{
-					"Gender": "Robot",
+				"name":   "Bob",
+				"age":    25,
+				"emails": []string{"bob@thebuilder.us", "bobby@notan.org"},
+				"dob":    "1999-02-10",
+				"extra": map[string]string{
+					"gender": "Robot",
 				},
 			},
 			existing: Person{},
 			result: Person{
-				Name:   "Bob",
-				Age:    25,
-				Emails: []string{"bob@thebuilder.us", "bobby@notan.org"},
+				Name:        "Bob",
+				Age:         25,
+				Emails:      []string{"bob@thebuilder.us", "bobby@notan.org"},
+				DateOfBirth: "1999-02-10",
 				Extra: map[string]string{
-					"Gender": "Robot",
+					"gender": "Robot",
 				},
 			},
 			expectedError: false,
@@ -58,13 +61,13 @@ func (s *UpdaterTestSuite) SetupSuite() {
 			name:    "person: all normal + unknown values",
 			element: Person{},
 			values: map[string]interface{}{
-				"Name":   "Bob",
-				"Age":    25,
-				"Emails": []string{"bob@thebuilder.us", "bobby@notan.org"},
-				"Extra": map[string]string{
-					"Gender": "Class",
+				"name":   "Bob",
+				"age":    25,
+				"emails": []string{"bob@thebuilder.us", "bobby@notan.org"},
+				"extra": map[string]string{
+					"gender": "Class",
 				},
-				"Invalid": true,
+				"invalid": true,
 			},
 			existing: Person{},
 			result: Person{
@@ -72,7 +75,7 @@ func (s *UpdaterTestSuite) SetupSuite() {
 				Age:    25,
 				Emails: []string{"bob@thebuilder.us", "bobby@notan.org"},
 				Extra: map[string]string{
-					"Gender": "Class",
+					"gender": "Class",
 				},
 			},
 			expectedError: false,
@@ -81,10 +84,10 @@ func (s *UpdaterTestSuite) SetupSuite() {
 			name:    "person: missing values",
 			element: Person{},
 			values: map[string]interface{}{
-				"Name": "Bob",
-				"Age":  25,
-				"Extra": map[string]string{
-					"Gender": "less",
+				"name": "Bob",
+				"age":  25,
+				"extra": map[string]string{
+					"gender": "less",
 				},
 			},
 			existing: Person{Emails: []string{"bobby@oldemail.us"}},
@@ -93,7 +96,7 @@ func (s *UpdaterTestSuite) SetupSuite() {
 				Age:    25,
 				Emails: []string{"bobby@oldemail.us"},
 				Extra: map[string]string{
-					"Gender": "less",
+					"gender": "less",
 				},
 			},
 			expectedError: false,
@@ -102,11 +105,11 @@ func (s *UpdaterTestSuite) SetupSuite() {
 			name:    "person: override values",
 			element: Person{},
 			values: map[string]interface{}{
-				"Name":   "Bob",
-				"Age":    25,
-				"Emails": []string{"no-reply@lebobby.fr"},
-				"Extra": map[string]string{
-					"Gender": "fox",
+				"name":   "Bob",
+				"age":    25,
+				"emails": []string{"no-reply@lebobby.fr"},
+				"extra": map[string]string{
+					"gender": "fox",
 				},
 			},
 			existing: Person{Emails: []string{"bobby@oldemail.us"}},
@@ -115,7 +118,7 @@ func (s *UpdaterTestSuite) SetupSuite() {
 				Age:    25,
 				Emails: []string{"no-reply@lebobby.fr"},
 				Extra: map[string]string{
-					"Gender": "fox",
+					"gender": "fox",
 				},
 			},
 			expectedError: false,
