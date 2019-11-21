@@ -5,10 +5,11 @@ import (
 )
 
 // Updater accepts an existing object (typically loaded from database)
+// and values to update the object with.
 // It returns an updated version of the object.
 type Updater func(existing interface{}, values map[string]interface{}) interface{}
 
-// New is a factory function that given an instance of an object will generate an updater function.
+// New is a factory function that given an instance of an object will generate an "Updater" function.
 func New(instance interface{}) Updater {
 	schema := make(map[string]struct{})
 
@@ -45,7 +46,7 @@ func New(instance interface{}) Updater {
 	}
 }
 
-// updateField updates a field
+// updateField updates a field using either new or existing values
 func updateField(name string, values map[string]interface{}, existing interface{}, field *reflect.Value) {
 	if !(field.IsValid() && field.CanSet()) {
 		return
