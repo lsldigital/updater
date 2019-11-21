@@ -4,20 +4,15 @@ import (
 	"reflect"
 )
 
-// Updater accepts an instance of an object (typically loaded from database)
-// and graphql resolve params.
+// Updater accepts an existing object (typically loaded from database)
 // It returns an updated version of the object.
-type Updater func(values map[string]interface{}, dest interface{}) interface{}
+type Updater func(existing interface{}, values map[string]interface{}) interface{}
 
-// New is a factory function that given a schematic will generate an updater function
-// which itself accepts an instance of an object (typically loaded from database)
-// and graphql resolve params.
-// It returns an updated version of the object.
-func New(element interface{}) Updater {
-	schema := make(map[string]reflect.StructField)
+// New is a factory function that given an instance of an object will generate an updater function.
+func New(instance interface{}) Updater {
+	schema := make(map[string]struct{})
 
-	//TODO use element to create schema
-	valElem := reflect.ValueOf(element)
+	valElem := reflect.ValueOf(instance)
 
 	if valElem.Kind() != reflect.Struct {
 		return nil
@@ -26,33 +21,33 @@ func New(element interface{}) Updater {
 	for i := 0; i < valElem.NumField(); i++ {
 		typeField := valElem.Type().Field(i)
 		name := typeField.Name
-		schema[name] = typeField
+		schema[name] = struct{}{}
 	}
 
-	return func(values map[string]interface{}, dest interface{}) interface{} {
-		typeDest := reflect.TypeOf(dest)
+	return func(existing interface{}, values map[string]interface{}) interface{} {
+		typeOfExisting := reflect.TypeOf(existing)
 
-		if typeDest.Kind() != reflect.Struct {
+		if typeOfExisting.Kind() != reflect.Struct {
 			return nil
 		}
 
-		newEl := reflect.New(typeDest).Elem()
-		if !newEl.CanInterface() {
+		newElem := reflect.New(typeOfExisting).Elem()
+		if !newElem.CanInterface() {
 			return nil
 		}
 
-		for name, _ := range schema {
-			fieldUpdater(name, name, values, dest, &newEl)
+		for name := range schema {
+			field := newElem.FieldByName(name)
+			updateField(name, values, existing, &field)
 		}
 
-		return newEl.Interface()
+		return newElem.Interface()
 	}
 }
 
-// fieldUpdater is a factory function for field
-func fieldUpdater(name, propname string, values map[string]interface{}, dest interface{}, newEl *reflect.Value) {
-	newField := newEl.FieldByName(propname)
-	if !(newField.IsValid() && newField.CanSet()) {
+// updateField updates a field
+func updateField(name string, values map[string]interface{}, existing interface{}, field *reflect.Value) {
+	if !(field.IsValid() && field.CanSet()) {
 		return
 	}
 
@@ -61,14 +56,14 @@ func fieldUpdater(name, propname string, values map[string]interface{}, dest int
 		if !valM.IsValid() {
 			return
 		}
-		if t := newField.Type(); valM.Type().ConvertibleTo(t) {
+		if t := field.Type(); valM.Type().ConvertibleTo(t) {
 			if v := valM.Convert(t); v.IsValid() {
-				newField.Set(v)
+				field.Set(v)
 			}
 		}
-	} else if valDest := reflect.ValueOf(dest); valDest.Kind() == reflect.Struct {
-		if fieldDest := valDest.FieldByName(propname); fieldDest.IsValid() {
-			newField.Set(fieldDest)
+	} else if valOfExisting := reflect.ValueOf(existing); valOfExisting.Kind() == reflect.Struct {
+		if fieldDest := valOfExisting.FieldByName(name); fieldDest.IsValid() {
+			field.Set(fieldDest)
 		}
 	}
 }

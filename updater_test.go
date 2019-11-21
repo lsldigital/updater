@@ -18,7 +18,7 @@ type testCase struct {
 	name          string
 	element       interface{}
 	values        map[string]interface{}
-	dest          interface{}
+	existing      interface{}
 	result        interface{}
 	expectedError bool
 }
@@ -43,7 +43,7 @@ func (s *UpdaterTestSuite) SetupSuite() {
 					"Gender": "Robot",
 				},
 			},
-			dest: Person{},
+			existing: Person{},
 			result: Person{
 				Name:   "Bob",
 				Age:    25,
@@ -66,7 +66,7 @@ func (s *UpdaterTestSuite) SetupSuite() {
 				},
 				"Invalid": true,
 			},
-			dest: Person{},
+			existing: Person{},
 			result: Person{
 				Name:   "Bob",
 				Age:    25,
@@ -84,16 +84,16 @@ func (s *UpdaterTestSuite) SetupSuite() {
 				"Name": "Bob",
 				"Age":  25,
 				"Extra": map[string]string{
-					"Gender": "Object",
+					"Gender": "less",
 				},
 			},
-			dest: Person{Emails: []string{"bobby@oldemail.us"}},
+			existing: Person{Emails: []string{"bobby@oldemail.us"}},
 			result: Person{
 				Name:   "Bob",
 				Age:    25,
 				Emails: []string{"bobby@oldemail.us"},
 				Extra: map[string]string{
-					"Gender": "Object",
+					"Gender": "less",
 				},
 			},
 			expectedError: false,
@@ -106,16 +106,16 @@ func (s *UpdaterTestSuite) SetupSuite() {
 				"Age":    25,
 				"Emails": []string{"no-reply@lebobby.fr"},
 				"Extra": map[string]string{
-					"Gender": "Object",
+					"Gender": "fox",
 				},
 			},
-			dest: Person{Emails: []string{"bobby@oldemail.us"}},
+			existing: Person{Emails: []string{"bobby@oldemail.us"}},
 			result: Person{
 				Name:   "Bob",
 				Age:    25,
 				Emails: []string{"no-reply@lebobby.fr"},
 				Extra: map[string]string{
-					"Gender": "Object",
+					"Gender": "fox",
 				},
 			},
 			expectedError: false,
@@ -128,7 +128,7 @@ func (s *UpdaterTestSuite) TestUpdater() {
 	for _, tc := range s.testcases {
 		s.Run(tc.name, func() {
 			updaterFn := updater.New(tc.element)
-			result := updaterFn(tc.values, tc.dest)
+			result := updaterFn(tc.existing, tc.values)
 			s.Equal(tc.result, result)
 		})
 	}
