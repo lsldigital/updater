@@ -127,8 +127,16 @@ func (s *UpdaterTestSuite) SetupSuite() {
 func (s *UpdaterTestSuite) TestUpdater() {
 	for _, tc := range s.testcases {
 		s.Run(tc.name, func() {
-			updaterFn := updater.New(tc.element)
-			result := updaterFn(tc.existing, tc.values)
+			updaterFn, err := updater.New(tc.element)
+			if err != nil && !tc.expectedError {
+				s.FailNow("updater.New: %v", err)
+			}
+
+			result, err := updaterFn(tc.existing, tc.values)
+			if err != nil && !tc.expectedError {
+				s.FailNow("updaterFn: %v", err)
+			}
+
 			s.Equal(tc.result, result)
 		})
 	}

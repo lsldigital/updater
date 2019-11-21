@@ -1,22 +1,23 @@
 package updater // import "go.lsl.digital/updater"
 
 import (
+	"errors"
 	"reflect"
 )
 
 // Updater accepts an existing object (typically loaded from database)
 // and values to update the object with.
 // It returns an updated version of the object.
-type Updater func(existing interface{}, values map[string]interface{}) interface{}
+type Updater func(existing interface{}, values map[string]interface{}) (interface{}, error)
 
 // New is a factory function that given an instance of an object will generate an "Updater" function.
-func New(instance interface{}) Updater {
+func New(instance interface{}) (Updater, error) {
 	schema := make(map[string]struct{})
 
 	valElem := reflect.ValueOf(instance)
 
 	if valElem.Kind() != reflect.Struct {
-		return nil
+		return nil, errors.New("instance must be of type struct")
 	}
 
 	for i := 0; i < valElem.NumField(); i++ {
@@ -25,16 +26,16 @@ func New(instance interface{}) Updater {
 		schema[name] = struct{}{}
 	}
 
-	return func(existing interface{}, values map[string]interface{}) interface{} {
+	return func(existing interface{}, values map[string]interface{}) (interface{}, error) {
 		typeOfExisting := reflect.TypeOf(existing)
 
 		if typeOfExisting.Kind() != reflect.Struct {
-			return nil
+			return nil, errors.New("existing object must be of type struct")
 		}
 
 		newElem := reflect.New(typeOfExisting).Elem()
 		if !newElem.CanInterface() {
-			return nil
+			return nil, errors.New("new element from existing object cannot be casted to interface")
 		}
 
 		for name := range schema {
@@ -42,8 +43,8 @@ func New(instance interface{}) Updater {
 			updateField(name, values, existing, &field)
 		}
 
-		return newElem.Interface()
-	}
+		return newElem.Interface(), nil
+	}, nil
 }
 
 // updateField updates a field using either new or existing values
