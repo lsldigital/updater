@@ -18,14 +18,14 @@ func New(instance interface{}) (Updater, error) {
 	}
 
 	return func(existing interface{}, values map[string]interface{}) (interface{}, error) {
-		newElem, err := newElementFromStruct(existing)
+		newElem, err := elementFromStruct(existing)
 		if err != nil {
 			return nil, err
 		}
 
 		for name, propname := range schema {
 			field := newElem.FieldByName(propname)
-			updateField(name, propname, values, existing, &field)
+			updateField(name, propname, values, existing, field)
 		}
 
 		return newElem.Interface(), nil
@@ -34,25 +34,33 @@ func New(instance interface{}) (Updater, error) {
 
 // updateField updates a field using either new or existing values
 // if no new values found for field, use existing values from existing instance of object
-func updateField(name, propname string, values map[string]interface{}, existing interface{}, field *reflect.Value) {
+func updateField(name, propname string, values map[string]interface{}, existing interface{}, field reflect.Value) {
+	// field must be settable
 	if !(field.IsValid() && field.CanSet()) {
 		return
 	}
 
+	// if present in values set field value from values
 	if raw, ok := values[name]; ok && raw != nil {
 		valM := reflect.ValueOf(raw)
-		if !valM.IsValid() {
+		typeM := field.Type()
+		if !valM.Type().ConvertibleTo(typeM) {
 			return
 		}
-		if t := field.Type(); valM.Type().ConvertibleTo(t) {
-			if v := valM.Convert(t); v.IsValid() {
-				field.Set(v)
-			}
-		}
-	} else if valOfExisting := reflect.ValueOf(existing); valOfExisting.Kind() == reflect.Struct {
-		if fieldDest := valOfExisting.FieldByName(propname); fieldDest.IsValid() {
-			field.Set(fieldDest)
-		}
+
+		v := valM.Convert(typeM)
+		field.Set(v)
+		return
+	}
+
+	// if pointer get value it points to instead
+	valOfExisting := reflect.ValueOf(existing)
+
+	valOfExisting = reflect.Indirect(valOfExisting)
+
+	if valOfExisting.Kind() == reflect.Struct {
+		fieldDest := valOfExisting.FieldByName(propname)
+		field.Set(fieldDest)
 	}
 }
 
@@ -64,9 +72,7 @@ func schemaFromInstance(instance interface{}) (map[string]string, error) {
 	valElem := reflect.ValueOf(instance)
 
 	// if pointer get value it points to instead
-	if valElem.Kind() == reflect.Ptr {
-		valElem = valElem.Elem()
-	}
+	valElem = reflect.Indirect(valElem)
 
 	if valElem.Kind() != reflect.Struct {
 		return nil, errors.New("instance must be of type struct")
@@ -89,20 +95,18 @@ func schemaFromInstance(instance interface{}) (map[string]string, error) {
 	return schema, nil
 }
 
-// newElementFromStruct creates a new element from existing struct
-func newElementFromStruct(existing interface{}) (*reflect.Value, error) {
-	typeOfExisting := reflect.TypeOf(existing)
+// elementFromStruct creates a new element from existing struct
+func elementFromStruct(existing interface{}) (*reflect.Value, error) {
+	valOfExisting := reflect.ValueOf(existing)
 
 	// if pointer get value it points to instead
-	if typeOfExisting.Kind() == reflect.Ptr {
-		typeOfExisting = typeOfExisting.Elem()
-	}
+	valOfExisting = reflect.Indirect(valOfExisting)
 
-	if typeOfExisting.Kind() != reflect.Struct {
+	if valOfExisting.Kind() != reflect.Struct {
 		return nil, errors.New("existing object must be of type struct")
 	}
 
-	newElem := reflect.New(typeOfExisting).Elem()
+	newElem := reflect.New(valOfExisting.Type()).Elem()
 	if !newElem.CanInterface() {
 		return nil, errors.New("new element from existing object cannot be casted to interface")
 	}

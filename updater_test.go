@@ -12,6 +12,8 @@ type Person struct {
 	Age         int
 	Emails      []string
 	DateOfBirth string `json:"dob"`
+	BFF         *Person
+	Friends     []Person
 	Extra       map[string]string
 }
 
@@ -37,10 +39,12 @@ func (s *UpdaterTestSuite) SetupSuite() {
 			name:    "person: all normal values",
 			element: Person{},
 			values: map[string]interface{}{
-				"name":   "Bob",
-				"age":    25,
-				"emails": []string{"bob@thebuilder.us", "bobby@notan.org"},
-				"dob":    "1999-02-10",
+				"name":    "Bob",
+				"age":     25,
+				"emails":  []string{"bob@thebuilder.us", "bobby@notan.org"},
+				"dob":     "1999-02-10",
+				"bff":     &Person{Name: "Jane"},
+				"friends": []Person{Person{Name: "John"}, Person{Name: "Doe"}},
 				"extra": map[string]string{
 					"gender": "Robot",
 				},
@@ -50,6 +54,8 @@ func (s *UpdaterTestSuite) SetupSuite() {
 				Name:        "Bob",
 				Age:         25,
 				Emails:      []string{"bob@thebuilder.us", "bobby@notan.org"},
+				BFF:         &Person{Name: "Jane"},
+				Friends:     []Person{Person{Name: "John"}, Person{Name: "Doe"}},
 				DateOfBirth: "1999-02-10",
 				Extra: map[string]string{
 					"gender": "Robot",
