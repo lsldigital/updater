@@ -169,7 +169,7 @@ func BenchmarkNewUpdater(b *testing.B) {
 func BenchmarkUpdater(b *testing.B) {
 	updaterFn, err := updater.New(Person{})
 	if err != nil {
-		b.FailNow()
+		b.Error(err)
 	}
 
 	existing := Person{}
