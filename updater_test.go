@@ -158,8 +158,10 @@ func TestUpdaterTestSuite(t *testing.T) {
 
 // BenchmarkNewUpdater benchmark the New "Updater" factory function
 func BenchmarkNewUpdater(b *testing.B) {
+	instance := Person{}
+
 	for i := 0; i < b.N; i++ {
-		updater.New(Person{})
+		updater.New(instance)
 	}
 }
 
@@ -170,17 +172,21 @@ func BenchmarkUpdater(b *testing.B) {
 		b.FailNow()
 	}
 
+	existing := Person{}
+
+	values := map[string]interface{}{
+		"name":    "Bob",
+		"age":     25,
+		"emails":  []string{"bob@thebuilder.us", "bobby@notan.org"},
+		"dob":     "1999-02-10",
+		"bff":     &Person{Name: "Jane"},
+		"friends": []Person{Person{Name: "John"}, Person{Name: "Doe"}},
+		"extra": map[string]string{
+			"gender": "Robot",
+		},
+	}
+
 	for i := 0; i < b.N; i++ {
-		updaterFn(Person{}, map[string]interface{}{
-			"name":    "Bob",
-			"age":     25,
-			"emails":  []string{"bob@thebuilder.us", "bobby@notan.org"},
-			"dob":     "1999-02-10",
-			"bff":     &Person{Name: "Jane"},
-			"friends": []Person{Person{Name: "John"}, Person{Name: "Doe"}},
-			"extra": map[string]string{
-				"gender": "Robot",
-			},
-		})
+		updaterFn(existing, values)
 	}
 }
