@@ -53,9 +53,9 @@ func updateField(name, propname string, values map[string]interface{}, existing 
 		return
 	}
 
-	// if pointer get value it points to instead
 	valOfExisting := reflect.ValueOf(existing)
 
+	// if pointer get value it points to instead
 	valOfExisting = reflect.Indirect(valOfExisting)
 
 	if valOfExisting.Kind() == reflect.Struct {
