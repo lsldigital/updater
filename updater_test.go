@@ -19,7 +19,7 @@ type Person struct {
 
 type testCase struct {
 	name          string
-	element       interface{}
+	instance      interface{}
 	values        map[string]interface{}
 	existing      interface{}
 	result        interface{}
@@ -36,8 +36,8 @@ type UpdaterTestSuite struct {
 func (s *UpdaterTestSuite) SetupSuite() {
 	s.testcases = []testCase{
 		testCase{
-			name:    "person: all normal values",
-			element: Person{},
+			name:     "person: all normal values",
+			instance: Person{},
 			values: map[string]interface{}{
 				"name":    "Bob",
 				"age":     25,
@@ -64,8 +64,8 @@ func (s *UpdaterTestSuite) SetupSuite() {
 			expectedError: false,
 		},
 		testCase{
-			name:    "person: all normal + unknown values",
-			element: Person{},
+			name:     "person: all normal + unknown values",
+			instance: Person{},
 			values: map[string]interface{}{
 				"name":   "Bob",
 				"age":    25,
@@ -87,8 +87,8 @@ func (s *UpdaterTestSuite) SetupSuite() {
 			expectedError: false,
 		},
 		testCase{
-			name:    "person: missing values",
-			element: Person{},
+			name:     "person: missing values",
+			instance: Person{},
 			values: map[string]interface{}{
 				"name": "Bob",
 				"age":  25,
@@ -108,8 +108,8 @@ func (s *UpdaterTestSuite) SetupSuite() {
 			expectedError: false,
 		},
 		testCase{
-			name:    "person: override values",
-			element: Person{},
+			name:     "person: override values",
+			instance: Person{},
 			values: map[string]interface{}{
 				"name":   "Bob",
 				"age":    25,
@@ -136,7 +136,7 @@ func (s *UpdaterTestSuite) SetupSuite() {
 func (s *UpdaterTestSuite) TestUpdater() {
 	for _, tc := range s.testcases {
 		s.Run(tc.name, func() {
-			updaterFn, err := updater.New(tc.element)
+			updaterFn, err := updater.New(tc.instance)
 			if err != nil && !tc.expectedError {
 				s.FailNow("updater.New: %v", err)
 			}
@@ -154,4 +154,33 @@ func (s *UpdaterTestSuite) TestUpdater() {
 // TestUpdaterTestSuite is the main entrypoint for UpdaterTestSuite
 func TestUpdaterTestSuite(t *testing.T) {
 	suite.Run(t, new(UpdaterTestSuite))
+}
+
+// BenchmarkNewUpdater benchmark the New "Updater" factory function
+func BenchmarkNewUpdater(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		updater.New(Person{})
+	}
+}
+
+// BenchmarkUpdater benchmark the "Updater" function
+func BenchmarkUpdater(b *testing.B) {
+	updaterFn, err := updater.New(Person{})
+	if err != nil {
+		b.FailNow()
+	}
+
+	for i := 0; i < b.N; i++ {
+		updaterFn(Person{}, map[string]interface{}{
+			"name":    "Bob",
+			"age":     25,
+			"emails":  []string{"bob@thebuilder.us", "bobby@notan.org"},
+			"dob":     "1999-02-10",
+			"bff":     &Person{Name: "Jane"},
+			"friends": []Person{Person{Name: "John"}, Person{Name: "Doe"}},
+			"extra": map[string]string{
+				"gender": "Robot",
+			},
+		})
+	}
 }
