@@ -4,6 +4,7 @@ import (
 	"unicode"
 )
 
+// Credit: https://github.com/azer/snakecase
 func toSnakeCase(str string) string {
 	in := []rune(str)
 	isLower := func(idx int) bool {
