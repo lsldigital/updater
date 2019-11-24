@@ -49,8 +49,8 @@ func (s *UpdaterTestSuite) SetupSuite() {
 					"gender": "Robot",
 				},
 			},
-			existing: Person{},
-			result: Person{
+			existing: &Person{Name: "Bobs"},
+			result: &Person{
 				Name:        "Bob",
 				Age:         25,
 				Emails:      []string{"bob@thebuilder.us", "bobby@notan.org"},
@@ -75,8 +75,8 @@ func (s *UpdaterTestSuite) SetupSuite() {
 				},
 				"invalid": true,
 			},
-			existing: Person{},
-			result: Person{
+			existing: &Person{},
+			result: &Person{
 				Name:   "Bob",
 				Age:    25,
 				Emails: []string{"bob@thebuilder.us", "bobby@notan.org"},
@@ -96,8 +96,8 @@ func (s *UpdaterTestSuite) SetupSuite() {
 					"gender": "less",
 				},
 			},
-			existing: Person{Emails: []string{"bobby@oldemail.us"}},
-			result: Person{
+			existing: &Person{Emails: []string{"bobby@oldemail.us"}},
+			result: &Person{
 				Name:   "Bob",
 				Age:    25,
 				Emails: []string{"bobby@oldemail.us"},
@@ -118,8 +118,8 @@ func (s *UpdaterTestSuite) SetupSuite() {
 					"gender": "fox",
 				},
 			},
-			existing: Person{Emails: []string{"bobby@oldemail.us"}},
-			result: Person{
+			existing: &Person{Emails: []string{"bobby@oldemail.us"}},
+			result: &Person{
 				Name:   "Bob",
 				Age:    25,
 				Emails: []string{"no-reply@lebobby.fr"},
@@ -141,12 +141,12 @@ func (s *UpdaterTestSuite) TestUpdater() {
 				s.FailNow("updater.New: %v", err)
 			}
 
-			result, err := updaterFn(tc.existing, tc.values)
+			err = updaterFn(tc.existing, tc.values)
 			if err != nil && !tc.expectedError {
 				s.FailNow("updaterFn: %v", err)
 			}
 
-			s.Equal(tc.result, result)
+			s.Equal(tc.result, tc.existing)
 		})
 	}
 }
@@ -172,7 +172,7 @@ func BenchmarkUpdater(b *testing.B) {
 		b.Error(err)
 	}
 
-	existing := Person{}
+	existing := &Person{}
 
 	values := map[string]interface{}{
 		"name":    "Bob",
