@@ -165,8 +165,78 @@ func BenchmarkNewUpdater(b *testing.B) {
 	}
 }
 
-// BenchmarkUpdater benchmark the "Updater" function
-func BenchmarkUpdater(b *testing.B) {
+// BenchmarkUpdaterBasicTypes benchmark the "Updater" function
+// with Basic types
+func BenchmarkUpdaterBasicTypes(b *testing.B) {
+	updaterFn, err := updater.New(Person{})
+	if err != nil {
+		b.Error(err)
+	}
+
+	existing := &Person{}
+
+	values := map[string]interface{}{
+		"name": "Bob",
+		"age":  25,
+		"dob":  "1999-02-10",
+	}
+
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		updaterFn(existing, values)
+	}
+}
+
+// BenchmarkUpdaterContainerTypes benchmark the "Updater" function
+// with Container types
+func BenchmarkUpdaterContainerTypes(b *testing.B) {
+	updaterFn, err := updater.New(Person{})
+	if err != nil {
+		b.Error(err)
+	}
+
+	existing := &Person{}
+
+	values := map[string]interface{}{
+		"emails": []string{"bob@thebuilder.us", "bobby@notan.org"},
+		"extra": map[string]string{
+			"gender": "Robot",
+		},
+	}
+
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		updaterFn(existing, values)
+	}
+}
+
+// BenchmarkUpdaterCompositeTypes benchmark the "Updater" function
+// with Composite types
+func BenchmarkUpdaterCompositeTypes(b *testing.B) {
+	updaterFn, err := updater.New(Person{})
+	if err != nil {
+		b.Error(err)
+	}
+
+	existing := &Person{}
+
+	values := map[string]interface{}{
+		"bff":     &Person{Name: "Jane"},
+		"friends": []Person{Person{Name: "John"}, Person{Name: "Doe"}},
+	}
+
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		updaterFn(existing, values)
+	}
+}
+
+// BenchmarkUpdaterAllTypes benchmark the "Updater" function
+// with All types
+func BenchmarkUpdaterAllTypes(b *testing.B) {
 	updaterFn, err := updater.New(Person{})
 	if err != nil {
 		b.Error(err)
@@ -185,6 +255,8 @@ func BenchmarkUpdater(b *testing.B) {
 			"gender": "Robot",
 		},
 	}
+
+	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
 		updaterFn(existing, values)
