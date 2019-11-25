@@ -25,6 +25,11 @@ type ToSnakeTestSuite struct {
 func (s *ToSnakeTestSuite) SetupSuite() {
 	s.testcases = []testCase{
 		testCase{
+			name:   "all caps",
+			input:  "MUSTPASS",
+			output: "mustpass",
+		},
+		testCase{
 			name:   "capitalized",
 			input:  "MustPass",
 			output: "must_pass",
