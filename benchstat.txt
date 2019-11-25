@@ -1,0 +1,7 @@
+name                     time/op
+ToSnakeCase-8             369ns ± 2%
+NewUpdater-8             1.41µs ± 1%
+UpdaterBasicTypes-8       639ns ± 0%
+UpdaterContainerTypes-8   505ns ± 0%
+UpdaterCompositeTypes-8   526ns ± 1%
+UpdaterAllTypes-8        1.09µs ± 1%
