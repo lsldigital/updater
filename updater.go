@@ -62,13 +62,7 @@ func updateField(name, propname string, values map[string]interface{}, valOfExis
 		return
 	}
 
-	valOfRaw := reflect.ValueOf(raw)
-	fieldType := field.Type()
-	if !valOfRaw.Type().ConvertibleTo(fieldType) {
-		return
-	}
-
-	field.Set(valOfRaw.Convert(fieldType))
+	field.Set(reflect.ValueOf(raw))
 }
 
 // schemaFromInstance accepts an instance of an object
