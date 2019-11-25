@@ -1,0 +1,53 @@
+goos: linux
+goarch: amd64
+pkg: go.lsl.digital/updater
+BenchmarkToSnakeCase-8             	 3188132	       367 ns/op
+BenchmarkToSnakeCase-8             	 3266313	       367 ns/op
+BenchmarkToSnakeCase-8             	 3275860	       368 ns/op
+BenchmarkToSnakeCase-8             	 3242804	       370 ns/op
+BenchmarkToSnakeCase-8             	 3272660	       367 ns/op
+BenchmarkToSnakeCase-8             	 3248431	       376 ns/op
+BenchmarkToSnakeCase-8             	 3027032	       415 ns/op
+BenchmarkToSnakeCase-8             	 3168552	       368 ns/op
+BenchmarkNewUpdater-8              	  854626	      1410 ns/op
+BenchmarkNewUpdater-8              	  834042	      1409 ns/op
+BenchmarkNewUpdater-8              	  820488	      1426 ns/op
+BenchmarkNewUpdater-8              	  862668	      1410 ns/op
+BenchmarkNewUpdater-8              	  834734	      1410 ns/op
+BenchmarkNewUpdater-8              	  858080	      1411 ns/op
+BenchmarkNewUpdater-8              	  823363	      1428 ns/op
+BenchmarkNewUpdater-8              	  840386	      1413 ns/op
+BenchmarkUpdaterBasicTypes-8       	 1873282	       639 ns/op
+BenchmarkUpdaterBasicTypes-8       	 1874526	       641 ns/op
+BenchmarkUpdaterBasicTypes-8       	 1860046	       637 ns/op
+BenchmarkUpdaterBasicTypes-8       	 1872709	       638 ns/op
+BenchmarkUpdaterBasicTypes-8       	 1867527	       646 ns/op
+BenchmarkUpdaterBasicTypes-8       	 1856438	       638 ns/op
+BenchmarkUpdaterBasicTypes-8       	 1870854	       638 ns/op
+BenchmarkUpdaterBasicTypes-8       	 1842460	       641 ns/op
+BenchmarkUpdaterContainerTypes-8   	 2336145	       505 ns/op
+BenchmarkUpdaterContainerTypes-8   	 2348284	       505 ns/op
+BenchmarkUpdaterContainerTypes-8   	 2349447	       519 ns/op
+BenchmarkUpdaterContainerTypes-8   	 2357432	       505 ns/op
+BenchmarkUpdaterContainerTypes-8   	 2352223	       505 ns/op
+BenchmarkUpdaterContainerTypes-8   	 2304578	       506 ns/op
+BenchmarkUpdaterContainerTypes-8   	 2349536	       506 ns/op
+BenchmarkUpdaterContainerTypes-8   	 2365798	       504 ns/op
+BenchmarkUpdaterCompositeTypes-8   	 2211044	       529 ns/op
+BenchmarkUpdaterCompositeTypes-8   	 2273818	       525 ns/op
+BenchmarkUpdaterCompositeTypes-8   	 2215364	       532 ns/op
+BenchmarkUpdaterCompositeTypes-8   	 2222348	       526 ns/op
+BenchmarkUpdaterCompositeTypes-8   	 2270556	       524 ns/op
+BenchmarkUpdaterCompositeTypes-8   	 2275417	       527 ns/op
+BenchmarkUpdaterCompositeTypes-8   	 2254378	       524 ns/op
+BenchmarkUpdaterCompositeTypes-8   	 2266102	       524 ns/op
+BenchmarkUpdaterAllTypes-8         	 1000000	      1087 ns/op
+BenchmarkUpdaterAllTypes-8         	 1000000	      1097 ns/op
+BenchmarkUpdaterAllTypes-8         	 1000000	      1083 ns/op
+BenchmarkUpdaterAllTypes-8         	 1000000	      1084 ns/op
+BenchmarkUpdaterAllTypes-8         	 1000000	      1087 ns/op
+BenchmarkUpdaterAllTypes-8         	 1000000	      1093 ns/op
+BenchmarkUpdaterAllTypes-8         	 1000000	      1100 ns/op
+BenchmarkUpdaterAllTypes-8         	 1000000	      1083 ns/op
+PASS
+ok  	go.lsl.digital/updater	73.922s
