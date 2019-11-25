@@ -1,18 +1,21 @@
 package updater
 
 import (
+	"strings"
 	"unicode"
 )
 
 // Credit: https://github.com/azer/snakecase
 func toSnakeCase(str string) string {
+	var sb strings.Builder
+
 	in := []rune(str)
 	lenIn := len(in)
+
 	isLower := func(idx int) bool {
 		return idx >= 0 && idx < lenIn && unicode.IsLower(in[idx])
 	}
 
-	out := make([]rune, 0, lenIn+lenIn/2)
 	for i, r := range in {
 		if unicode.IsSpace(r) {
 			if i+1 < lenIn {
@@ -23,11 +26,11 @@ func toSnakeCase(str string) string {
 		if unicode.IsUpper(r) {
 			r = unicode.ToLower(r)
 			if i > 0 && in[i-1] != '_' && (isLower(i-1) || isLower(i+1)) {
-				out = append(out, '_')
+				sb.WriteRune('_')
 			}
 		}
-		out = append(out, r)
+		sb.WriteRune(r)
 	}
 
-	return string(out)
+	return sb.String()
 }
