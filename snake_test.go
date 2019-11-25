@@ -40,17 +40,27 @@ func (s *ToSnakeTestSuite) SetupSuite() {
 			output: "mustpass",
 		},
 		testCase{
-			name:   "capitalized with space",
-			input:  "really MustPass",
-			output: "really _must_pass",
+			name:   "all space",
+			input:  "this must pass",
+			output: "this_must_pass",
 		},
 		testCase{
-			name:   "capitalized with numbers",
+			name:   "all space + upper",
+			input:  "this Must paSs",
+			output: "this_must_pa_ss",
+		},
+		testCase{
+			name:   "capitalized + space",
+			input:  "really MustPass",
+			output: "really_must_pass",
+		},
+		testCase{
+			name:   "capitalized + numbers",
 			input:  "Must123Pass456",
 			output: "must123_pass456",
 		},
 		testCase{
-			name:   "capitalized with symbols",
+			name:   "capitalized + symbols",
 			input:  "Must@Pass&",
 			output: "must@_pass&",
 		},
