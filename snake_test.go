@@ -91,6 +91,9 @@ func TestToSnakeTestSuite(t *testing.T) {
 func BenchmarkToSnakeCase(b *testing.B) {
 	input := "SomeTextToSnake@Case123"
 
+	b.ReportAllocs()
+	b.ResetTimer()
+
 	for i := 0; i < b.N; i++ {
 		toSnakeCase(input)
 	}

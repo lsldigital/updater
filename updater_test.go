@@ -198,6 +198,9 @@ func TestUpdaterTestSuite(t *testing.T) {
 func BenchmarkNewUpdater(b *testing.B) {
 	instance := Person{}
 
+	b.ReportAllocs()
+	b.ResetTimer()
+
 	for i := 0; i < b.N; i++ {
 		updater.New(instance)
 	}
@@ -219,6 +222,7 @@ func BenchmarkUpdaterBasicTypes(b *testing.B) {
 		"dob":  "1999-02-10",
 	}
 
+	b.ReportAllocs()
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
@@ -243,6 +247,7 @@ func BenchmarkUpdaterContainerTypes(b *testing.B) {
 		},
 	}
 
+	b.ReportAllocs()
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
@@ -265,6 +270,7 @@ func BenchmarkUpdaterCompositeTypes(b *testing.B) {
 		"friends": []Person{Person{Name: "John"}, Person{Name: "Doe"}},
 	}
 
+	b.ReportAllocs()
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
@@ -294,6 +300,7 @@ func BenchmarkUpdaterAllTypes(b *testing.B) {
 		},
 	}
 
+	b.ReportAllocs()
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
