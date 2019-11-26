@@ -17,6 +17,13 @@ type Person struct {
 	Extra       map[string]string
 }
 
+type AnotherPerson struct {
+	Name   string
+	Age    int
+	Emails []string
+	Other  map[string]string
+}
+
 type testCase struct {
 	name          string
 	instance      interface{}
@@ -49,8 +56,8 @@ func (s *UpdaterTestSuite) SetupSuite() {
 					"gender": "Robot",
 				},
 			},
-			existing: &Person{Name: "Bobs"},
-			result: &Person{
+			existing: Person{Name: "Bobs"},
+			result: Person{
 				Name:        "Bob",
 				Age:         25,
 				Emails:      []string{"bob@thebuilder.us", "bobby@notan.org"},
@@ -75,8 +82,8 @@ func (s *UpdaterTestSuite) SetupSuite() {
 				},
 				"invalid": true,
 			},
-			existing: &Person{},
-			result: &Person{
+			existing: Person{},
+			result: Person{
 				Name:   "Bob",
 				Age:    25,
 				Emails: []string{"bob@thebuilder.us", "bobby@notan.org"},
@@ -96,8 +103,8 @@ func (s *UpdaterTestSuite) SetupSuite() {
 					"gender": "less",
 				},
 			},
-			existing: &Person{Emails: []string{"bobby@oldemail.us"}},
-			result: &Person{
+			existing: Person{Emails: []string{"bobby@oldemail.us"}},
+			result: Person{
 				Name:   "Bob",
 				Age:    25,
 				Emails: []string{"bobby@oldemail.us"},
@@ -118,8 +125,8 @@ func (s *UpdaterTestSuite) SetupSuite() {
 					"gender": "fox",
 				},
 			},
-			existing: &Person{Emails: []string{"bobby@oldemail.us"}},
-			result: &Person{
+			existing: Person{Emails: []string{"bobby@oldemail.us"}},
+			result: Person{
 				Name:   "Bob",
 				Age:    25,
 				Emails: []string{"no-reply@lebobby.fr"},
@@ -130,17 +137,33 @@ func (s *UpdaterTestSuite) SetupSuite() {
 			expectedError: false,
 		},
 		testCase{
-			name:     "person: type mistmatch",
+			name:     "person: field type mistmatch",
 			instance: Person{},
 			values: map[string]interface{}{
 				"name":   "Bob",
 				"age":    "25",
 				"emails": "job@test.he",
 			},
-			existing: &Person{Emails: []string{"bobby@oldemail.us"}},
-			result: &Person{
+			existing: Person{Emails: []string{"bobby@oldemail.us"}},
+			result: Person{
 				Name:   "Bob",
 				Emails: []string{"bobby@oldemail.us"},
+			},
+			expectedError: false,
+		},
+		testCase{
+			name:     "person: instance + existing type mistmatch",
+			instance: Person{},
+			values: map[string]interface{}{
+				"name":   "Bob",
+				"age":    25,
+				"emails": []string{"somebody@nobody.nb"},
+			},
+			existing: AnotherPerson{Emails: []string{"bobby@oldemail.us"}},
+			result: Person{
+				Name:   "Bob",
+				Age:    25,
+				Emails: []string{"somebody@nobody.nb"},
 			},
 			expectedError: false,
 		},
@@ -156,12 +179,12 @@ func (s *UpdaterTestSuite) TestUpdater() {
 				s.FailNow("updater.New: %v", err)
 			}
 
-			err = updaterFn(tc.existing, tc.values)
+			result, err := updaterFn(tc.existing, tc.values)
 			if err != nil && !tc.expectedError {
 				s.FailNow("updaterFn: %v", err)
 			}
 
-			s.Equal(tc.result, tc.existing)
+			s.Equal(tc.result, result)
 		})
 	}
 }

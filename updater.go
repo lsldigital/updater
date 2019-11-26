@@ -7,97 +7,129 @@ import (
 
 // Common errors for updater
 var (
-	ErrInvalidInstance      = errors.New("instance must be of type struct")
-	ErrInvalidExistingObj   = errors.New("existing object must be of type pointer to struct")
-	ErrInvalidDerivedSchema = errors.New("derived schema is empty")
+	ErrInvalidInstance = errors.New("instance must be of type struct")
+	ErrInvalidExisting = errors.New("existing must be of type struct")
+	ErrEmptyInstance   = errors.New("instance must have at least one field")
+	ErrInvalidValType  = errors.New("invalid value type")
 )
+
+// Field represents information about a single field of a struct
+type Field struct {
+	Name     string
+	Propname string
+	Type     reflect.Type
+}
 
 // Updater accepts a pointer to an object (typically loaded from database)
 // and values to update the object with.
 // It updates the existing object with the values.
-type Updater func(existing interface{}, values map[string]interface{}) error
+type Updater func(existing interface{}, values map[string]interface{}) (interface{}, error)
 
 // New is a factory function that given an instance of an object will generate an "Updater" function.
 func New(instance interface{}) (Updater, error) {
-	schema, err := schemaFromInstance(instance)
+	fields, instanceType, err := metaFromInstance(instance)
 	if err != nil {
 		return nil, err
 	}
 
-	return func(existing interface{}, values map[string]interface{}) error {
-		valOfExisting := reflect.ValueOf(existing)
+	return func(existing interface{}, values map[string]interface{}) (interface{}, error) {
+		newValOfInstance := valFromType(instanceType)
 
-		// existing must a pointer to struct
-		if valOfExisting.Kind() != reflect.Ptr {
-			return ErrInvalidExistingObj
-		}
-		valOfExisting = valOfExisting.Elem()
-		if valOfExisting.Kind() != reflect.Struct {
-			return ErrInvalidExistingObj
+		valOfExisting, ok := valOfStruct(existing)
+		if !ok {
+			return nil, ErrInvalidExisting
 		}
 
-		for name, propname := range schema {
-			updateField(name, propname, values, valOfExisting)
+		for index, field := range fields {
+			val := getValue(field, values, valOfExisting)
+			updateField(index, newValOfInstance, val)
 		}
 
-		existing = valOfExisting.Interface()
-
-		return nil
+		return newValOfInstance.Interface(), nil
 	}, nil
 }
 
-// updateField updates a field using either new or existing values
-// if no new values found for field, use existing values from existing instance of object
-func updateField(name, propname string, values map[string]interface{}, valOfExisting reflect.Value) {
-	// get raw from values and check if valid
-	raw, ok := values[name]
-	if !ok || raw == nil {
-		return
+// getValue returns a value from either values or field in valOfStruct
+// else we return zero value of field
+func getValue(field Field, values map[string]interface{}, valOfStruct reflect.Value) reflect.Value {
+	// if in values, use it
+	if raw, ok := values[field.Name]; ok && raw != nil {
+		valOfRaw := reflect.ValueOf(raw)
+		if convertibleTo(valOfRaw, field.Type) {
+			return valOfRaw
+		}
 	}
 
-	field := valOfExisting.FieldByName(propname)
-
-	// field must be valid and settable
-	if !field.IsValid() || !field.CanSet() {
-		return
+	// else use value from field in existing struct
+	fieldExisting := valOfStruct.FieldByName(field.Propname)
+	if !fieldExisting.IsValid() || !convertibleTo(fieldExisting, field.Type) {
+		return reflect.Zero(field.Type)
 	}
 
-	typeField := field.Type()
-	valOfRaw := reflect.ValueOf(raw)
-	if !valOfRaw.Type().ConvertibleTo(typeField) {
-		return
-	}
-
-	field.Set(reflect.ValueOf(raw))
+	return fieldExisting
 }
 
-// schemaFromInstance accepts an instance of an object
-// and returns map[fieldname]propname
-func schemaFromInstance(instance interface{}) (map[string]string, error) {
-	schema := make(map[string]string)
+// convertibleTo checks if val can convert to fieldType
+func convertibleTo(val reflect.Value, fieldType reflect.Type) bool {
+	return val.Type().ConvertibleTo(fieldType)
+}
 
-	valElem := reflect.ValueOf(instance)
+// updateField updates field of valOfStruct at specified index with newVal
+func updateField(index int, valOfStruct, newVal reflect.Value) {
+	valOfStruct.Field(index).Set(newVal)
+}
 
-	// if pointer get value it points to instead
-	valElem = reflect.Indirect(valElem)
-
-	if valElem.Kind() != reflect.Struct {
-		return nil, ErrInvalidInstance
+// metaFromInstance accepts an instance of an object
+// and returns []Field
+func metaFromInstance(instance interface{}) ([]Field, reflect.Type, error) {
+	valOfInstance, ok := valOfStruct(instance)
+	if !ok {
+		return nil, nil, ErrInvalidInstance
 	}
 
-	for i := 0; i < valElem.NumField(); i++ {
-		typeField := valElem.Type().Field(i)
+	numFields := valOfInstance.NumField()
+
+	if numFields == 0 {
+		return nil, nil, ErrEmptyInstance
+	}
+
+	schema := make([]Field, numFields, numFields)
+
+	for i := 0; i < numFields; i++ {
+		typeField := valOfInstance.Type().Field(i)
+
 		propname := typeField.Name
 		fieldname := typeField.Tag.Get("json")
 		if fieldname == "" || fieldname == "-" {
 			fieldname = toSnakeCase(propname)
 		}
-		schema[fieldname] = propname
+
+		schema[i] = Field{
+			Name:     fieldname,
+			Propname: propname,
+			Type:     typeField.Type,
+		}
 	}
 
-	if len(schema) == 0 {
-		return nil, ErrInvalidDerivedSchema
+	return schema, valOfInstance.Type(), nil
+}
+
+// valOfStruct checks that instance is a struct
+// and returns its reflect.Value
+func valOfStruct(instance interface{}) (reflect.Value, bool) {
+	valOfInstance := reflect.ValueOf(instance)
+
+	// if pointer get value it points to instead
+	valOfInstance = reflect.Indirect(valOfInstance)
+
+	if valOfInstance.Kind() != reflect.Struct {
+		return reflect.Value{}, false
 	}
 
-	return schema, nil
+	return valOfInstance, true
+}
+
+// valFromType returns the reflect.Value from structType
+func valFromType(structType reflect.Type) reflect.Value {
+	return reflect.New(structType).Elem()
 }
