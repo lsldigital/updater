@@ -42,6 +42,10 @@ func New(instance interface{}) (Updater, error) {
 
 		for index, field := range fields {
 			val := getValue(field, values, valOfExisting)
+			if val.IsZero() {
+				continue
+			}
+
 			setField(index, newValOfInstance, val)
 		}
 

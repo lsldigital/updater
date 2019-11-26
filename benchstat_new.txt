@@ -1,0 +1,7 @@
+name                     old time/op  new time/op  delta
+ToSnakeCase-8             372ns ± 2%   375ns ± 4%     ~     (p=0.536 n=7+8)
+NewUpdater-8             1.21µs ± 2%  1.21µs ± 1%     ~     (p=0.793 n=8+7)
+UpdaterBasicTypes-8       977ns ± 0%   890ns ± 1%   -8.94%  (p=0.000 n=7+8)
+UpdaterContainerTypes-8  1.05µs ± 2%  0.89µs ± 1%  -16.00%  (p=0.000 n=8+7)
+UpdaterCompositeTypes-8  1.03µs ± 2%  0.89µs ± 1%  -13.97%  (p=0.000 n=8+7)
+UpdaterAllTypes-8         603ns ± 0%   651ns ± 1%   +7.89%  (p=0.000 n=7+8)
