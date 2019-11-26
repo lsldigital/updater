@@ -42,7 +42,7 @@ func New(instance interface{}) (Updater, error) {
 
 		for index, field := range fields {
 			val := getValue(field, values, valOfExisting)
-			updateField(index, newValOfInstance, val)
+			setField(index, newValOfInstance, val)
 		}
 
 		return newValOfInstance.Interface(), nil
@@ -74,8 +74,8 @@ func convertibleTo(val reflect.Value, fieldType reflect.Type) bool {
 	return val.Type().ConvertibleTo(fieldType)
 }
 
-// updateField updates field of valOfStruct at specified index with newVal
-func updateField(index int, valOfStruct, newVal reflect.Value) {
+// setField updates field of valOfStruct at specified index with newVal
+func setField(index int, valOfStruct, newVal reflect.Value) {
 	valOfStruct.Field(index).Set(newVal)
 }
 
