@@ -62,6 +62,12 @@ func updateField(name, propname string, values map[string]interface{}, valOfExis
 		return
 	}
 
+	typeField := field.Type()
+	valOfRaw := reflect.ValueOf(raw)
+	if !valOfRaw.Type().ConvertibleTo(typeField) {
+		return
+	}
+
 	field.Set(reflect.ValueOf(raw))
 }
 

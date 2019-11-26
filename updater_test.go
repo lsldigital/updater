@@ -129,6 +129,21 @@ func (s *UpdaterTestSuite) SetupSuite() {
 			},
 			expectedError: false,
 		},
+		testCase{
+			name:     "person: type mistmatch",
+			instance: Person{},
+			values: map[string]interface{}{
+				"name":   "Bob",
+				"age":    "25",
+				"emails": "job@test.he",
+			},
+			existing: &Person{Emails: []string{"bobby@oldemail.us"}},
+			result: &Person{
+				Name:   "Bob",
+				Emails: []string{"bobby@oldemail.us"},
+			},
+			expectedError: false,
+		},
 	}
 }
 
